@@ -11,4 +11,4 @@ lang: en
 
 # Testing my blog!
 
-If you're seeing this, the new blog test page has been successful.
+If you're seeing this, the new blog test page has been successful. Holla if you hear me!
