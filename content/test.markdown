@@ -1,14 +1,14 @@
 ---
 title: Testing my blog
-tags: test-post
+tags: blog-o-matic
 layout: post
-date: 2020-08-29 12:30:00 +0100
+date: 2020-09-01 12:55:00 +0100
 comments: true
 category: blog
 description:
 lang: en
 ---
 
-# Test!
+# Testing my blog!
 
-If you're seeing this, my new blog with an additional "test" post has been successfully created.
+If you're seeing this, the new blog test page has been successful.
