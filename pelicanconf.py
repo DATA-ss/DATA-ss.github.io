@@ -6,9 +6,9 @@ import datetime
 # THINGS TO CONFIGURE
 # ---------------------------------------------------------------------
 
-AUTHOR = "A blog-o-matic user"
-SITENAME = "My personal blog with blog-o-matic"
-SITESUBTITLE = "This is where I do test things"
+AUTHOR = "Kai"
+SITENAME = "Data Super Saiyan"
+SITESUBTITLE = "Where we go even further beyond!"
 SITEURL = "/"
 DEFAULT_LANG = "en"
 DEFAULT_CATEGORY = "blog"
