@@ -1,6 +1,6 @@
 ---
-title: NLTK Python App on Heroku
-tags: nlp, machine learning
+title: How to Run Your NLTK Pythonic App on Heroku
+tags: natural language processing, machine learning
 layout: post
 date: 2019-12-01 01:30:00 -0400
 comments: true
@@ -10,16 +10,11 @@ lang: en
 
 ---
 
-
-# How to Run Your NLTK Pythonic App on Heroku
-
 If you're having issues running your NLTK-based Pythonic app on Heroku, this guide is for you.
-
-
 
 ## Context
 
-For my final project at GA, I was creating an [NLTK-based keyword assessment tool](https://github.com/duryan00/point_forward) that parses user-provided job descriptions and returns the relevant keywords that the user should prioritize on their resume.
+For my final project at GA, I was creating an [NLTK-based keyword assessment tool](https://github.com/data-ss/point_forward) that parses user-provided job descriptions and returns the relevant keywords that the user should prioritize on their resume.
 * key package: NLTK
 
 Additionally, I have a companion Word Cloud component that shares the same text preprocessing function as the above. It involves searching/scraping job descriptions for a user-input job title, passing that corpus through the preprocessing function before it is fed to the WordCloud generator.

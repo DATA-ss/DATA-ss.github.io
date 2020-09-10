@@ -1,5 +1,5 @@
 ---
-title: Passive Aggressive Regression
+title: Passive-Aggressive Regression
 tags: machine learning
 layout: post
 date: 2019-09-16 00:30:00 -0400
@@ -12,7 +12,7 @@ lang: en
 
 # Foreword
 
-#### Why <img src="https://media1.giphy.com/media/Nx0rz3jtxtEre/giphy.gif" width="200" height="100" /> I'm Ryan, an aspiring 🏀 sports ⚽ analyst/enthusiast, self-proclaimed meme specialist, and avid durian connoisseur. This will be my first post of many, and today I would like to discuss the Passive Aggressive Regression method.
+#### Why <img src="https://media1.giphy.com/media/Nx0rz3jtxtEre/giphy.gif" width="200" height="100" /> I'm Kai, an aspiring 🏀 sports ⚽ analyst/enthusiast, self-proclaimed meme specialist, and avid durian connoisseur. This will be my first post of many, and today I would like to discuss the Passive Aggressive Regression method.
 
 # **INTRODUCTION**
 

@@ -1,5 +1,5 @@
 ---
-title: Multinomial & Dirichlet Distribution
+title: Multinomial & Dirichlet Distribution with PyMC3
 tags: machine learning
 layout: post
 date: 2019-10-05 00:30:00 -0400
@@ -9,8 +9,6 @@ description:
 lang: en
 
 ---
-
-# Multinomial & Dirichlet Distribution with PyMC3
 
 In this post, we'll explore the Multinomial and Dirichlet distributions for die rolls using the PyMC3 package. To toss things up a bit I'll simulate a biased D20 (D20 is a 20-sided die from my days as a Magic: the Gathering player).
 

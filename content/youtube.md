@@ -1,22 +1,20 @@
 ---
-title: Virality Prophet
-tags: machine learning, nltk, hackathon
+title: DSI 5 Hackathon - The (YouTube) Virality Prophet
+tags: machine learning, natural language processing, hackathon
 layout: post
 date: 2019-10-21 10:30:00 -0400
 comments: true
 category: blog
-description: description
+description: 
 lang: en
 
 ---
-
-# DSI 5 Hackathon - The (YouTube) Virality Prophet
 
 As a Data Science Immersive student, I had the privilege of participating in my very first Hackathon last week under the tutelage of my instructor Max Humber. This post serves to detail the inspirations behind the algorithm that underpins the [Virality Prophet](https://virality-prophet.herokuapp.com/).
 
 My team was provided with YouTube datasets from US and Canada and given the task of producing an algorithm that would predict whether a YouTube video will go viral or not, based on user-inputs. Additionally this would serve as the backend with the frontend being hosted on Heroku.  
 
-[Click here for the github repo.](https://github.com/duryan00/virality-prophet)
+[Click here for the github repo.](https://github.com/data-ss/virality-prophet)
 
 ---
 

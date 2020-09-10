@@ -1,5 +1,5 @@
 ---
-title: Amazon's Machine Learning Use Case Takeaway
+title: Takeaways from Amazon's Machine Learning Use Case: Call Center
 tags: amazon, machine learning
 layout: post
 date: 2020-02-20 17:30:00 -0400
@@ -9,8 +9,6 @@ description:
 lang: en
 
 ---
-
-# Takeaways from Amazon's Machine Learning Use Case: Call Center
 
 > Home of Big Data - Amazon
 

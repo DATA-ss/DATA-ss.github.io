@@ -10,9 +10,6 @@ lang: en
 
 ---
 
-# Missing Indicator
-
----
 ## Overview
 
 This post will demonstrate the use of the `MissingIndicator`, showcasing the behaviour of the algorithm by altering parameters such as "features" and "missing_values" to make sense of the corresponding output.

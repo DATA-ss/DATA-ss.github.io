@@ -1,16 +1,14 @@
 ---
-title: Job Description Hacker
-tags: machine learning, nlp
+title: Point Forward: The Job Description Hacker
+tags: machine learning, natural language processing
 layout: post
 date: 2019-11-12 03:31:00 -0400
 comments: true
 category: blog
-description: describe
+description: 
 lang: en
 
 ---
-
-# Point Forward: The Job Description Hacker
 
 As the DSI course winds to a close, I've set out to produce a NLP-based model that should "hack" a job description and returns the top most words one should use in their job search efforts (in this case me!).
 
@@ -37,8 +35,3 @@ To model this adequately, `spaCy` is the most suitable package to support this p
 The idea is to have a front-end that accepts a user-input (via copy-paste) of a job description they found online, and the model would parse it for the most relevant texts that the user should use in their resume to target that specific job.
 
 ## *STAY TUNED!!*
-
-
-```python
-
-```

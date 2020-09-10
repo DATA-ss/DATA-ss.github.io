@@ -10,8 +10,6 @@ lang: en
 
 ---
 
-# Iterative Imputer
-
 The `IterativeImputer` is an estimator that's still experimental as of the time of writing (27 September 2019).
 
 The docstring reads:
