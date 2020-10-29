@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../../../../../theme/css/style.min.css?fc5adb95">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="google-site-verification" content="Bk4Z5ucHLyPXqlZlj5LzANpYBBSvxqBW4E8i-Kwf-bQ" />        <meta name="msvalidate.01" content="8FF1B025212A47B5B27CC47163A042F0" />        <meta name="author" content="Kai" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="machine learning, natural language processing, hackathon, blog, " />
+
+<meta property="og:title" content="DSI 5 Hackathon - The (YouTube) Virality Prophet "/>
+<meta property="og:url" content="../../../../../blog/2019/10/21/dsi-5-hackathon-the-youtube-virality-prophet/" />
+<meta property="og:description" content="As a Data Science Immersive student, I had the privilege of participating in my very first Hackathon last week under the tutelage of my instructor Max Humber. This post serves to detail the inspirations behind the algorithm that underpins the Virality Prophet. My team was provided with YouTube datasets from …" />
+<meta property="og:site_name" content="Data Super Saiyan" />
+<meta property="og:article:author" content="Kai" />
+<meta property="og:article:published_time" content="2019-10-21T10:30:00-04:00" />
+<meta name="twitter:title" content="DSI 5 Hackathon - The (YouTube) Virality Prophet ">
+<meta name="twitter:description" content="As a Data Science Immersive student, I had the privilege of participating in my very first Hackathon last week under the tutelage of my instructor Max Humber. This post serves to detail the inspirations behind the algorithm that underpins the Virality Prophet. My team was provided with YouTube datasets from …">
+
+        <title>DSI 5 Hackathon - The (YouTube) Virality Prophet  · Data Super Saiyan
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Data Super Saiyan - Full Atom Feed" />
+        <link href="/feeds/all.rss" type="application/rss+xml" rel="alternate" title="Data Super Saiyan - Full RSS Feed" />
+
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="../../../../../"><span class=site-name>Data Super Saiyan</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       ../../../../..
+                                    >Home</a>
+                                </li>
+                                <li ><a href="../../../../../about/">About</a></li>
+                                <li ><a href="../../../../../categories">Categories</a></li>
+                                <li ><a href="../../../../../tags">Tags</a></li>
+                                <li ><a href="../../../../../archives">Archives</a></li>
+                                <li><form class="navbar-search" action="../../../../../search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="../../../../../blog/2019/10/21/dsi-5-hackathon-the-youtube-virality-prophet/">
+                <span class="caps">DSI</span> 5 Hackathon - The (YouTube) Virality&nbsp;Prophet
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+        <div class="span8 offset2 article-content">
+            
+            <hr>
+<p>As a Data Science Immersive student, I had the privilege of participating in my very first Hackathon last week under the tutelage of my instructor Max Humber. This post serves to detail the inspirations behind the algorithm that underpins the <a href="https://virality-prophet.herokuapp.com/">Virality Prophet</a>.</p>
+<p>My team was provided with YouTube datasets from <span class="caps">US</span> and Canada and given the task of producing an algorithm that would predict whether a YouTube video will go viral or not, based on user-inputs. Additionally this would serve as the backend with the frontend being hosted on&nbsp;Heroku.  </p>
+<p><a href="https://github.com/data-ss/virality-prophet">Click here for the github&nbsp;repo.</a></p>
+<hr>
+<h3 id="eda"><span class="caps">EDA</span><a class="headerlink" href="#eda" title="Permanent link">&para;</a></h3>
+<p>The following are the necessary&nbsp;packages.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn_pandas</span> <span class="kn">import</span> <span class="n">DataFrameMapper</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">LabelBinarizer</span><span class="p">,</span> <span class="n">StandardScaler</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">TfidfVectorizer</span>
+<span class="kn">from</span> <span class="nn">catboost</span> <span class="kn">import</span> <span class="n">CatBoostClassifier</span><span class="p">,</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">make_pipeline</span>
+<span class="kn">from</span> <span class="nn">sklearn.impute</span> <span class="kn">import</span> <span class="n">SimpleImputer</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># loading the datasets into DataFrames</span>
+
+<span class="n">raw_df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;CAvideos.csv&#39;</span><span class="p">)</span>
+<span class="n">raw_df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;USvideos.csv&#39;</span><span class="p">)</span>
+
+<span class="c1"># we decided to combine both datasets into one unified DataFrame</span>
+<span class="n">raw_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">raw_df1</span><span class="p">,</span> <span class="n">raw_df2</span><span class="p">])</span>
+<span class="n">raw_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">raw_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+</td></tr></table>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>index</th>
+      <th>video_id</th>
+      <th>trending_date</th>
+      <th>title</th>
+      <th>channel_title</th>
+      <th>category_id</th>
+      <th>publish_time</th>
+      <th>tags</th>
+      <th>views</th>
+      <th>likes</th>
+      <th>dislikes</th>
+      <th>comment_count</th>
+      <th>thumbnail_link</th>
+      <th>comments_disabled</th>
+      <th>ratings_disabled</th>
+      <th>video_error_or_removed</th>
+      <th>description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+      <td>n1WpP7iowLc</td>
+      <td>17.14.11</td>
+      <td>Eminem - Walk On Water (Audio) ft. Beyoncé</td>
+      <td>EminemVEVO</td>
+      <td>10</td>
+      <td>2017-11-10T17:00:03.000Z</td>
+      <td>Eminem|&#8221;Walk&#8221;|&#8221;On&#8221;|&#8221;Water&#8221;|&#8221;Aftermath/Shady/In&#8230;</td>
+      <td>17158579</td>
+      <td>787425</td>
+      <td>43420</td>
+      <td>125882</td>
+      <td>https://i.ytimg.com/vi/n1WpP7iowLc/default.jpg</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>Eminem&#8217;s new track Walk on Water ft. Beyoncé i&#8230;</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>0dBIkQ4Mz1M</td>
+      <td>17.14.11</td>
+      <td><span class="caps">PLUSH</span> - Bad Unboxing Fan Mail</td>
+      <td>iDubbbzTV</td>
+      <td>23</td>
+      <td>2017-11-13T17:00:00.000Z</td>
+      <td>plush|&#8221;bad unboxing&#8221;|&#8221;unboxing&#8221;|&#8221;fan mail&#8221;|&#8221;id&#8230;</td>
+      <td>1014651</td>
+      <td>127794</td>
+      <td>1688</td>
+      <td>13030</td>
+      <td>https://i.ytimg.com/vi/0dBIkQ4Mz1M/default.jpg</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>STill got a lot of packages. Probably will las&#8230;</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>5qpjK5DgCt4</td>
+      <td>17.14.11</td>
+      <td>Racist Superman | Rudy Mancuso, King Bach <span class="amp">&amp;</span> Le&#8230;</td>
+      <td>Rudy Mancuso</td>
+      <td>23</td>
+      <td>2017-11-12T19:05:24.000Z</td>
+      <td>racist superman|&#8221;rudy&#8221;|&#8221;mancuso&#8221;|&#8221;king&#8221;|&#8221;bach&#8221;&#8230;</td>
+      <td>3191434</td>
+      <td>146035</td>
+      <td>5339</td>
+      <td>8181</td>
+      <td>https://i.ytimg.com/vi/5qpjK5DgCt4/default.jpg</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td><span class="caps">WATCH</span> <span class="caps">MY</span> <span class="caps">PREVIOUS</span> <span class="caps">VIDEO</span> ▶ \n\nSUBSCRIBE ► http&#8230;</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>3</td>
+      <td>d380meD0W0M</td>
+      <td>17.14.11</td>
+      <td>I Dare You: <span class="caps">GOING</span> <span class="caps">BALD</span>!?</td>
+      <td>nigahiga</td>
+      <td>24</td>
+      <td>2017-11-12T18:01:41.000Z</td>
+      <td>ryan|&#8221;higa&#8221;|&#8221;higatv&#8221;|&#8221;nigahiga&#8221;|&#8221;i dare you&#8221;|&#8221;&#8230;</td>
+      <td>2095828</td>
+      <td>132239</td>
+      <td>1989</td>
+      <td>17518</td>
+      <td>https://i.ytimg.com/vi/d380meD0W0M/default.jpg</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>I know it&#8217;s been a while since we did this sho&#8230;</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>4</td>
+      <td>2Vv-BfVoq4g</td>
+      <td>17.14.11</td>
+      <td>Ed Sheeran - Perfect (Official Music Video)</td>
+      <td>Ed Sheeran</td>
+      <td>10</td>
+      <td>2017-11-09T11:04:14.000Z</td>
+      <td>edsheeran|&#8221;ed sheeran&#8221;|&#8221;acoustic&#8221;|&#8221;live&#8221;|&#8221;cove&#8230;</td>
+      <td>33523622</td>
+      <td>1634130</td>
+      <td>21082</td>
+      <td>85067</td>
+      <td>https://i.ytimg.com/vi/2Vv-BfVoq4g/default.jpg</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>🎧: https://ad.gt/yt-perfect\n💰: https://atlant&#8230;</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># check the columns to see what we&#39;re given</span>
+<span class="n">raw_df</span><span class="o">.</span><span class="n">columns</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="err">Index([&#39;index&#39;, &#39;video_id&#39;, &#39;trending_date&#39;, &#39;title&#39;, &#39;channel_title&#39;,</span>
+<span class="err">       &#39;category_id&#39;, &#39;publish_time&#39;, &#39;tags&#39;, &#39;views&#39;, &#39;likes&#39;, &#39;dislikes&#39;,</span>
+<span class="err">       &#39;comment_count&#39;, &#39;thumbnail_link&#39;, &#39;comments_disabled&#39;,</span>
+<span class="err">       &#39;ratings_disabled&#39;, &#39;video_error_or_removed&#39;, &#39;description&#39;],</span>
+<span class="err">      dtype=&#39;object&#39;)</span>
+</code></pre></div>
+</td></tr></table>
+<p>From the above, we can perform some additional feature engineering and target engineering. We will also drop some columns that serve no purpose to our&nbsp;analysis.</p>
+<p>First we&#8217;ll extract and create the <code>publish_date</code> column from the <code>publish_time</code> column as shown&nbsp;below.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^.*?(?=T)&quot;</span>
+<span class="n">publish_date</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s1">&#39;publish_time&#39;</span><span class="p">])):</span>
+    <span class="n">test_str</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s1">&#39;publish_time&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">matches</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">test_str</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">publish_date</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s1">&#39;publish_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">publish_date</span>
+</code></pre></div>
+</td></tr></table>
+<p>Next we&#8217;ll do some replacements on the <code>trending_date</code> column so that we can format it and <code>publish_date</code> as <code>datetime</code>.</p>
+<p>From there we created a <code>days_to_trend</code> column that reflects how many days a video took to&nbsp;trend.</p>
+<p><em>Note: &#8220;trend&#8221; is still subjective as a target but we&#8217;ll get to that a bit&nbsp;later.</em></p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">raw_df</span><span class="p">[</span><span class="s1">&#39;trending_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">raw_df</span><span class="p">[</span><span class="s1">&#39;trending_date&#39;</span><span class="p">]]</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;publish_date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;publish_date&quot;</span><span class="p">])</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;trending_date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;trending_date&quot;</span><span class="p">],</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;%y-</span><span class="si">%d</span><span class="s1">-%m&#39;</span><span class="p">)</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;days_to_trend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;trending_date&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;publish_date&quot;</span><span class="p">]</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;days_to_trend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;days_to_trend&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">days</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># convert the &quot;publish_date&quot; column to be a numeric category,</span>
+<span class="c1"># with 0 mapped to Monday and 6 mapped to Sunday</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;publish_date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;publish_date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">weekday</span><span class="p">())</span>
+</code></pre></div>
+</td></tr></table>
+<hr>
+<h2 id="target-engineering">Target Engineering<a class="headerlink" href="#target-engineering" title="Permanent link">&para;</a></h2>
+<p>Recall that we still haven&#8217;t dealt with what the &#8220;target&#8221; should be yet. From examination of the columns we&#8217;re probably inclined to simply set the &#8220;views&#8221; column as the target and be done with&nbsp;it.</p>
+<p>However we ought to remember that we&#8217;re tasked with predicting whether a video would go viral (or not) based on certain criteria. Thus the virality of a video should be predicated on a combination of views, likes and dislikes among other features; a combination of &#8220;targets&#8221; if you&nbsp;will.</p>
+<p>To simplify this, I came up with a unified &#8220;virality&#8221; metric based on 5 columns in the&nbsp;dataset:</p>
+<ul>
+<li><code>views</code></li>
+<li><code>likes</code></li>
+<li><code>dislikes</code></li>
+<li><code>comment_count</code></li>
+<li><code>days_to_trend</code></li>
+</ul>
+<p>We&#8217;ll introduce a penalty term based on the <code>days_to_trend</code> where the goal is to &#8220;reward&#8221; those that took the fewer days to trend, while increasingly &#8220;punishing&#8221; those that took more days to&nbsp;trend.</p>
+<div class="math">$$ \text{days_penalty} = \frac{1}{(w_{\text{days}})*(1 + \text{days_to_trend})}$$</div>
+<p>To obtain the <code>metric</code> for each row, weights would be assigned to each of the other four targets and then combined with the <code>days_penalty</code> term as per the following&nbsp;equation:</p>
+<div class="math">$$ \text{metric} = \text{days_penalty} * [(\text{views} * w_1) + (\text{likes}*w_2) + (\text{dislikes}*w_3)+(\text{comment_count}*w_4)] $$</div>
+<p>As for setting the weight terms, these can be arbitrary depending on what we think the importance of each target should&nbsp;be.</p>
+<p>For our purposes I think <span class="math">\(w_1\)</span> for views is the most important, followed by <span class="math">\(w_2\)</span>, <span class="math">\(w_4\)</span> and <span class="math">\(w_3\)</span>. We&#8217;ll also set the weight for <code>days_penalty</code> to be <span class="math">\(0.13\)</span> to achieve the aforementioned&nbsp;effect.</p>
+<div class="math">$$ w_1 = 0.5$$</div>
+<div class="math">$$ w_2 = 0.25$$</div>
+<div class="math">$$ w_3 = 0.1$$</div>
+<div class="math">$$ w_4 = 0.15$$</div>
+<div class="math">$$ w_\text{days} = 0.13$$</div>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># create a unified metric based on 5 categories</span>
+<span class="n">view_weight</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">likes_weight</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">dislikes_weight</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">comment_weight</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="n">days_weight</span> <span class="o">=</span> <span class="mf">0.13</span>
+
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;days_penalty&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">days_weight</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;days_to_trend&quot;</span><span class="p">]))</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;days_penalty&quot;</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;views&quot;</span><span class="p">]</span><span class="o">*</span><span class="n">view_weight</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;likes&quot;</span><span class="p">]</span><span class="o">*</span><span class="n">likes_weight</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;dislikes&quot;</span><span class="p">]</span><span class="o">*</span><span class="n">dislikes_weight</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;comment_count&quot;</span><span class="p">]</span><span class="o">*</span><span class="n">comment_weight</span><span class="p">)</span>
+<span class="n">raw_df</span><span class="p">[[</span><span class="s2">&quot;metric&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+</td></tr></table>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>metric</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1.341899e+07</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1.985324e+06</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>4.129852e+06</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2.722845e+06</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2.191290e+07</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<hr>
+<h2 id="transforming-into-a-classification-problem">Transforming Into a Classification Problem<a class="headerlink" href="#transforming-into-a-classification-problem" title="Permanent link">&para;</a></h2>
+<p>Following the steps above, we then decided to turn this problem into a classification one from a regression&nbsp;one.</p>
+<p>To do so, we&#8217;ll have to set a cutoff point. Using the aforementioned equations in the <strong>Target Engineering</strong> section, we can calculate this cutoff point. Any data points whose <code>metric</code> falls below this cutoff will be assigned <span class="math">\(0\)</span> while the opposite will be assigned a <span class="math">\(1\)</span> in a new <code>viral</code> column.</p>
+<p>For our purposes we&#8217;ll set the following benchmarks for each&nbsp;category.</p>
+<div class="math">$$ \text{views}: 1000000$$</div>
+<div class="math">$$ \text{likes}: mean_\text{likes}(\text{views} &gt; 1000000)$$</div>
+<div class="math">$$ \text{dislikes}: mean_\text{dislikes}(\text{views} &gt; 1000000)$$</div>
+<div class="math">$$ \text{comment_count}: mean_\text{comment_count}(\text{views} &gt; 1000000)$$</div>
+<div class="math">$$ \text{days_to_trend}: 5$$</div>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">view_cut</span> <span class="o">=</span> <span class="mi">1000000</span> <span class="c1"># set cutoff at 1 million views</span>
+<span class="n">day_cut</span> <span class="o">=</span> <span class="mi">5</span> <span class="c1"># set cutoff days to trend</span>
+<span class="n">likes_cut</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;likes&quot;</span><span class="p">][</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;views&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">view_cut</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">dislikes_cut</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;dislikes&quot;</span><span class="p">][</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;views&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">view_cut</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">comment_cut</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;comment_count&quot;</span><span class="p">][</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;views&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">view_cut</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">cutoff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">days_weight</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">day_cut</span><span class="p">)))</span><span class="o">*</span><span class="p">((</span><span class="n">view_cut</span><span class="o">*</span><span class="n">view_weight</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">likes_cut</span><span class="o">*</span><span class="n">likes_weight</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">dislikes_cut</span><span class="o">*</span><span class="n">dislikes_weight</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">comment_cut</span><span class="o">*</span><span class="n">comment_weight</span><span class="p">)))</span>
+</code></pre></div>
+</td></tr></table>
+<p>Finally we&#8217;ll log-transform our new <code>metric</code> column to make it better approximate a normal distribution, which will also positively affect our&nbsp;results.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">raw_df</span><span class="p">[[</span><span class="s2">&quot;metric&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">])</span> <span class="c1"># log transform to approximate normal distribution</span>
+
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;viral&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">cutoff</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># create new class column as target to predict virality</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># plot log-transformed unified metric</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">distplot</span><span class="p">(</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]);</span>
+</code></pre></div>
+</td></tr></table>
+<p><img src="images/output_21_0.png" width="450" height="250" /></p>
+<p>Before we go further, there is one more feature engineering to&nbsp;do.</p>
+<p>From the length of the video title we can yet extract one more column, namely the <code>title_len</code> column. From a quick search we can find that the consensus for an optimal title length is between <span class="math">\(60-70\)</span>&nbsp;characters.</p>
+<p><em>Note: by default YouTube allows a maximum of 100 characters in the title&nbsp;section.</em></p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># extract extra column from title length</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;title_len&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">raw_df</span><span class="p">[[</span><span class="s2">&quot;title_len&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+</td></tr></table>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title_len</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>42</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>29</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>53</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>24</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>43</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="other-eda">Other <span class="caps">EDA</span><a class="headerlink" href="#other-eda" title="Permanent link">&para;</a></h2>
+<p>We&#8217;re interested in using the <code>TFIDF</code> algorithm to extract the relevant keywords from our dataset. Instead of running an instance for each text column (<code>title</code>, <code>tags</code>, <code>description</code>), we&#8217;re actually better served by combining all three columns into one and then running a single instance of <code>TFIDF</code> on&nbsp;it.  </p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># fill NaN in &quot;description&quot; to run tfidf</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># combining all three text columns into one single column</span>
+<span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;titles&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">raw_df</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+</code></pre></div>
+</td></tr></table>
+<p>We&#8217;re now ready to perform our analysis. The irrelevant columns will be dropped&nbsp;first.</p>
+<p>The &#8220;target&#8221; is now the <code>viral</code> binary column, while the remaining feature columns&nbsp;are:</p>
+<ul>
+<li>
+<p><code>publish_date</code></p>
+</li>
+<li>
+<p><code>category_id</code></p>
+</li>
+<li>
+<p><code>title_len</code></p>
+</li>
+<li>
+<p><code>titles</code></p>
+</li>
+</ul>
+<p>To find out what each of the <code>category_id</code> maps to, we&#8217;ll have to dig into the .json files provided. We also have to ensure that the <code>category_id</code> sets pulled from both the <span class="caps">US</span> and Canadian sets are the exact&nbsp;same.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">cats_us</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="s2">&quot;US_category_id.json&quot;</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">]))</span>
+<span class="n">categories_us</span> <span class="o">=</span> <span class="p">{</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="s2">&quot;US_category_id.json&quot;</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;items&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="s2">&quot;US_category_id.json&quot;</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;items&quot;</span><span class="p">][</span><span class="s2">&quot;snippet&quot;</span><span class="p">][</span><span class="s2">&quot;title&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cats_us</span><span class="p">)}</span>
+<span class="n">cats_ca</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="s2">&quot;CA_category_id.json&quot;</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">]))</span>
+<span class="n">categories_ca</span> <span class="o">=</span> <span class="p">{</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="s2">&quot;CA_category_id.json&quot;</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;items&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="s2">&quot;CA_category_id.json&quot;</span><span class="p">)[</span><span class="s2">&quot;items&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;items&quot;</span><span class="p">][</span><span class="s2">&quot;snippet&quot;</span><span class="p">][</span><span class="s2">&quot;title&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cats_ca</span><span class="p">)}</span>
+</code></pre></div>
+</td></tr></table>
+<p>Check if there&#8217;s any difference between the two dictionary&nbsp;sets.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="nb">set</span><span class="p">(</span><span class="n">categories_us</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">categories_ca</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="err">{&#39;29&#39;}</span>
+</code></pre></div>
+</td></tr></table>
+<p>So the Canadian dictionary set is lacking the <code>category_id: 29</code>. We&#8217;ll stick to using the American dictionary&nbsp;set.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">raw_df</span> <span class="o">=</span> <span class="n">raw_df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;video_id&#39;</span><span class="p">,</span> <span class="s1">&#39;channel_title&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;publish_time&#39;</span><span class="p">,</span> <span class="s1">&#39;views&#39;</span><span class="p">,</span> <span class="s1">&#39;likes&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;dislikes&#39;</span><span class="p">,</span> <span class="s1">&#39;comment_count&#39;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;trending_date&quot;</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">,</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span><span class="s1">&#39;thumbnail_link&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;comments_disabled&#39;</span><span class="p">,</span> <span class="s1">&#39;ratings_disabled&#39;</span><span class="p">,</span> <span class="s1">&#39;days_to_trend&#39;</span><span class="p">,</span> <span class="s2">&quot;days_penalty&quot;</span><span class="p">,</span> <span class="s2">&quot;trending_date&quot;</span><span class="p">,</span> <span class="s1">&#39;video_error_or_removed&#39;</span><span class="p">,</span> <span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;viral&#39;</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">raw_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">raw_df</span><span class="p">[[</span><span class="n">target</span><span class="p">]]</span>
+</code></pre></div>
+</td></tr></table>
+<p>Perform our usual <code>train_test_split</code>. We&#8217;ll then call a <code>DataFrameMapper</code> to funnel our columns into a&nbsp;transformation.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">mapper</span> <span class="o">=</span> <span class="n">DataFrameMapper</span><span class="p">([</span>    
+    <span class="p">([</span><span class="s1">&#39;publish_date&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">SimpleImputer</span><span class="p">(),</span> <span class="n">LabelBinarizer</span><span class="p">()]),</span>
+    <span class="p">([</span><span class="s1">&#39;category_id&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">SimpleImputer</span><span class="p">(),</span> <span class="n">LabelBinarizer</span><span class="p">()]),</span>
+    <span class="p">([</span><span class="s1">&#39;title_len&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">SimpleImputer</span><span class="p">(),</span> <span class="n">StandardScaler</span><span class="p">()]),</span>
+    <span class="p">(</span><span class="s1">&#39;titles&#39;</span><span class="p">,</span> <span class="n">TfidfVectorizer</span><span class="p">(</span><span class="n">stop_words</span><span class="o">=</span><span class="s1">&#39;english&#39;</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">token_pattern</span><span class="o">=</span><span class="sa">u</span><span class="s1">&#39;(?ui)</span><span class="se">\\</span><span class="s1">b</span><span class="se">\\</span><span class="s1">w*[a-z]+</span><span class="se">\\</span><span class="s1">w*</span><span class="se">\\</span><span class="s1">b&#39;</span><span class="p">))</span>
+<span class="p">],</span> <span class="n">df_out</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<h2 id="modelling-with-catboost-classifier">Modelling with CatBoost Classifier<a class="headerlink" href="#modelling-with-catboost-classifier" title="Permanent link">&para;</a></h2>
+<p>With the <code>mapper</code> created, we can now use the CatBoost Classifier to fit our prediction&nbsp;algorithm.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># cat_features = []</span>
+<span class="n">Z_train</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+<span class="n">Z_test</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+
+
+<span class="n">cat</span> <span class="o">=</span> <span class="n">CatBoostClassifier</span><span class="p">(</span>
+    <span class="n">iterations</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+    <span class="n">eval_metric</span><span class="o">=</span><span class="s2">&quot;F1&quot;</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">early_stopping_rounds</span><span class="o">=</span><span class="mi">3000</span>
+<span class="p">)</span>
+
+<span class="n">train_pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">Z_train</span><span class="p">,</span>
+                  <span class="n">label</span><span class="o">=</span><span class="n">y_train</span><span class="p">)</span>
+
+<span class="n">validation_pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">Z_test</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="n">y_test</span><span class="p">)</span>
+<span class="n">cat</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">train_pool</span><span class="p">,</span>
+    <span class="n">eval_set</span><span class="o">=</span><span class="n">validation_pool</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Model is fitted: </span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">is_fitted</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Model params: </span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">get_params</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cat</span><span class="o">.</span><span class="n">best_score_</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="err">Model is fitted: True</span>
+<span class="err">Model params: {&#39;iterations&#39;: 5000, &#39;learning_rate&#39;: 0.5, &#39;random_seed&#39;: 42, &#39;eval_metric&#39;: &#39;F1&#39;, &#39;early_stopping_rounds&#39;: 3000}</span>
+<span class="err">{&#39;learn&#39;: {&#39;Logloss&#39;: 0.12699710020912125, &#39;F1&#39;: 0.9446652399877714}, &#39;validation&#39;: {&#39;Logloss&#39;: 0.2595652853013616, &#39;F1&#39;: 0.8756729559748426}}</span>
+</code></pre></div>
+</td></tr></table>
+<p>Using <code>F1</code> as the metric, the CatBoost Classifier was able to achieve a training set score of <span class="math">\(94\text{%}\)</span> with a test set score of <span class="math">\(87\text{%}\)</span>!</p>
+<p>While there&#8217;s some slight overfitting, for our purposes this is sufficiently decent to use as our virality predictor&nbsp;model.</p>
+<hr>
+<h2 id="wrapping-up">Wrapping Up<a class="headerlink" href="#wrapping-up" title="Permanent link">&para;</a></h2>
+<p>I hope this post can serve as an inspiration for future readers to be more creative with their data (within good reason of&nbsp;course!).</p>
+<p>While the actions I had performed for both feature and target engineering was beyond what I&#8217;ve been exposed to at the time, it still felt right and logical and the results were able to speak for&nbsp;themselves.</p>
+<blockquote>
+<p><em><span class="dquo">&#8220;</span>Data Science is sometimes more art than&nbsp;science.&#8221;</em></p>
+<ul>
+<li>Max Humber,&nbsp;2019</li>
+</ul>
+</blockquote>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+
+    var configscript = document.createElement('script');
+    configscript.type = 'text/x-mathjax-config';
+    configscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'none' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        availableFonts: ['STIX', 'TeX']," +
+        "        preferredFont: 'STIX'," +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+
+
+             
+ 
+                <p id="post-share-links">
+    Like this post? Share on:
+      <a href="https://twitter.com/intent/tweet?text=DSI%205%20Hackathon%20-%20The%20%28YouTube%29%20Virality%C2%A0Prophet&url=/blog/2019/10/21/dsi-5-hackathon-the-youtube-virality-prophet/&hashtags=machine-learning,natural-language-processing,hackathon" target="_blank" rel="nofollow noopener noreferrer" title="Share on Twitter">Twitter</a>
+ ❄       <a href="https://www.facebook.com/sharer/sharer.php?u=/blog/2019/10/21/dsi-5-hackathon-the-youtube-virality-prophet/" target="_blank" rel="nofollow noopener noreferrer" title="Share on Facebook">Facebook</a>
+ ❄       <a href="mailto:?subject=DSI%205%20Hackathon%20-%20The%20%28YouTube%29%20Virality%C2%A0Prophet&amp;body=/blog/2019/10/21/dsi-5-hackathon-the-youtube-virality-prophet/" target="_blank" rel="nofollow noopener noreferrer" title="Share via Email">Email</a>
+
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+<section>
+    <h2>Keep Reading</h2>
+<ul class="related-posts-list">
+<li><a href="../../../../../blog/2019/09/30/iterative-imputer/" title="Iterative Imputer">Iterative Imputer</a></li>
+<li><a href="../../../../../blog/2019/10/05/multinomial-dirichlet-distribution-with-pymc3/" title="Multinomial &amp; Dirichlet Distribution with PyMC3">Multinomial & Dirichlet Distribution with PyMC3</a></li>
+<li><a href="../../../../../blog/2019/11/12/point-forward-the-job-description-hacker/" title="Point Forward: The Job Description Hacker">Point Forward: The Job Description Hacker</a></li>
+<li><a href="../../../../../blog/2019/12/01/how-to-run-your-nltk-pythonic-app-on-heroku/" title="How to Run Your NLTK Pythonic App on Heroku">How to Run Your NLTK Pythonic App on Heroku</a></li>
+<li><a href="../../../../../blog/2020/02/20/takeaways-from-amazons-machine-learning-use-case-call-center/" title="Takeaways from Amazon’s Machine Learning Use Case: Call Center">Takeaways from Amazon’s Machine Learning Use Case: Call Center</a></li>
+</ul>
+<hr />
+</section>
+            <aside>
+            <nav>
+            <ul class="articles-timeline">
+                <li class="previous-article">« <a href="../../../../../blog/2019/10/05/multinomial-dirichlet-distribution-with-pymc3/" title="Previous: Multinomial &amp; Dirichlet Distribution with PyMC3">Multinomial & Dirichlet Distribution with PyMC3</a></li>
+                <li class="next-article"><a href="../../../../../blog/2019/11/12/point-forward-the-job-description-hacker/" title="Next: Point Forward: The Job Description Hacker">Point Forward: The Job Description Hacker</a> »</li>
+            </ul>
+            </nav>
+            </aside>
+        </div>
+        <section id="article-sidebar" class="span2">
+    <h4>Reading Time</h4>
+    <p>~7 min read</p>
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2019-10-21T10:30:00-04:00">Mon 21 October 2019</time>
+            <h4>Category</h4>
+            <a class="category-link" href="../../../../../categories#blog-ref">blog</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="../../../../../tags#hackathon-ref">hackathon
+                    <span class="superscript">1</span>
+</a></li>
+                <li><a href="../../../../../tags#machine-learning-ref">machine learning
+                    <span class="superscript">8</span>
+</a></li>
+                <li><a href="../../../../../tags#natural-language-processing-ref">natural language processing
+                    <span class="superscript">3</span>
+</a></li>
+            </ul>
+<h4>Stay in Touch</h4>
+<div id="sidebar-social-link">
+    <a href="http://twitter.com/iranzop" title="" target="_blank" rel="nofollow noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-label="Twitter" role="img" viewBox="0 0 512 512"><rect width="512" height="512" rx="15%" fill="#1da1f3"/><path fill="#fff" d="M437 152a72 72 0 0 1-40 12 72 72 0 0 0 32-40 72 72 0 0 1-45 17 72 72 0 0 0-122 65 200 200 0 0 1-145-74 72 72 0 0 0 22 94 72 72 0 0 1-32-7 72 72 0 0 0 56 69 72 72 0 0 1-32 1 72 72 0 0 0 67 50 200 200 0 0 1-105 29 200 200 0 0 0 309-179 200 200 0 0 0 35-37"/></svg>
+    </a>
+    <a href="http://github.com/iranzo" title="" target="_blank" rel="nofollow noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-label="GitHub" role="img" viewBox="0 0 512 512"><rect width="512" height="512" rx="15%" fill="#1B1817"/><path fill="#fff" d="M335 499c14 0 12 17 12 17H165s-2-17 12-17c13 0 16-6 16-12l-1-50c-71 16-86-28-86-28-12-30-28-37-28-37-24-16 1-16 1-16 26 2 40 26 40 26 22 39 59 28 74 22 2-17 9-28 16-35-57-6-116-28-116-126 0-28 10-51 26-69-3-6-11-32 3-67 0 0 21-7 70 26 42-12 86-12 128 0 49-33 70-26 70-26 14 35 6 61 3 67 16 18 26 41 26 69 0 98-60 120-117 126 10 8 18 24 18 48l-1 70c0 6 3 12 16 12z"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/iranzo/" title="" target="_blank" rel="nofollow noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-label="LinkedIn" role="img" viewBox="0 0 512 512" fill="#fff"><rect width="512" height="512" rx="15%" fill="#0077b5"/><circle cx="142" cy="138" r="37"/><path stroke="#fff" stroke-width="66" d="M244 194v198M142 194v198"/><path d="M276 282c0-20 13-40 36-40 24 0 33 18 33 45v105h66V279c0-61-32-89-76-89-34 0-51 19-59 32"/></svg>
+    </a>
+</div>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+    <div>
+        <span class="site-name">Data Super Saiyan</span> - Where we go even further beyond!
+    </div>
+
+
+    <span class="site-name">Data Super Saiyan</span>  is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com.
+    <div id="amzn-assoc-ad-23824450-ef77-4537-9259-8590465886f1">
+    </div>
+    <script async src="//z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US&adInstanceId=23824450-ef77-4537-9259-8590465886f1">
+    </script>
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="../../../../../theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

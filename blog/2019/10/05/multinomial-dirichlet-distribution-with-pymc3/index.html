@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../../../../../theme/css/style.min.css?fc5adb95">
+
+        <link rel="dns-prefetch" href="//fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+        <meta name="google-site-verification" content="Bk4Z5ucHLyPXqlZlj5LzANpYBBSvxqBW4E8i-Kwf-bQ" />        <meta name="msvalidate.01" content="8FF1B025212A47B5B27CC47163A042F0" />        <meta name="author" content="Kai" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="machine learning, blog, " />
+
+<meta property="og:title" content="Multinomial &amp; Dirichlet Distribution with PyMC3 "/>
+<meta property="og:url" content="../../../../../blog/2019/10/05/multinomial-dirichlet-distribution-with-pymc3/" />
+<meta property="og:description" content="In this post, we’ll explore the Multinomial and Dirichlet distributions for die rolls using the PyMC3 package. To toss things up a bit I’ll simulate a biased D20 (D20 is a 20-sided die from my days as a Magic: the Gathering player). Multinomial Distribution¶ The multinomial distribution is …" />
+<meta property="og:site_name" content="Data Super Saiyan" />
+<meta property="og:article:author" content="Kai" />
+<meta property="og:article:published_time" content="2019-10-05T00:30:00-04:00" />
+<meta name="twitter:title" content="Multinomial &amp; Dirichlet Distribution with PyMC3 ">
+<meta name="twitter:description" content="In this post, we’ll explore the Multinomial and Dirichlet distributions for die rolls using the PyMC3 package. To toss things up a bit I’ll simulate a biased D20 (D20 is a 20-sided die from my days as a Magic: the Gathering player). Multinomial Distribution¶ The multinomial distribution is …">
+
+        <title>Multinomial &amp; Dirichlet Distribution with PyMC3  · Data Super Saiyan
+</title>
+        <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Data Super Saiyan - Full Atom Feed" />
+        <link href="/feeds/all.rss" type="application/rss+xml" rel="alternate" title="Data Super Saiyan - Full RSS Feed" />
+
+
+
+    </head>
+    <body>
+        <div id="content">
+            <div class="navbar navbar-static-top">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </a>
+                        <a class="brand" href="../../../../../"><span class=site-name>Data Super Saiyan</span></a>
+                        <div class="nav-collapse collapse">
+                            <ul class="nav pull-right top-menu">
+                                <li >
+                                    <a href=
+                                       ../../../../..
+                                    >Home</a>
+                                </li>
+                                <li ><a href="../../../../../about/">About</a></li>
+                                <li ><a href="../../../../../categories">Categories</a></li>
+                                <li ><a href="../../../../../tags">Tags</a></li>
+                                <li ><a href="../../../../../archives">Archives</a></li>
+                                <li><form class="navbar-search" action="../../../../../search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+<article itemscope>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+        <h1>
+            <a href="../../../../../blog/2019/10/05/multinomial-dirichlet-distribution-with-pymc3/">
+                Multinomial <span class="amp">&amp;</span> Dirichlet Distribution with&nbsp;PyMC3
+            </a>
+        </h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+        <div class="span8 offset2 article-content">
+            
+            <hr>
+<p>In this post, we&#8217;ll explore the Multinomial and Dirichlet distributions for die rolls using the PyMC3 package. To toss things up a bit I&#8217;ll simulate a biased D20 (D20 is a 20-sided die from my days as a Magic: the Gathering&nbsp;player).</p>
+<hr>
+<h4 id="multinomial-distribution"><strong>Multinomial Distribution</strong><a class="headerlink" href="#multinomial-distribution" title="Permanent link">&para;</a></h4>
+<p>The multinomial distribution is a generalization of the binomial distribution. For our purposes it adequately models the probability of counts of each side for rolling a <span class="math">\(k\)</span>-sided die <span class="math">\(n\)</span> amount of&nbsp;times.</p>
+<div class="math">$$k = \textrm{number of sides of a die}$$</div>
+<div class="math">$$n = \textrm{number of rolls/trials of the die}$$</div>
+<p>For <span class="math">\(n\)</span> amount of independent trials, each of which leads to a success for exactly one of <span class="math">\(k\)</span> categories, with each category having a given fixed probability of success, the multinomial distribution gives the probability of any particular combination of numbers of successes for the various <span class="math">\(k\)</span>&nbsp;categories.</p>
+<p>Note the following behaviour as <span class="math">\(k\)</span> and <span class="math">\(n\)</span> is changed:
+- when <span class="math">\(k\)</span> is <span class="math">\(2\)</span> and <span class="math">\(n\)</span> is <span class="math">\(1\)</span>, the multinomial distribution is the Bernoulli distribution
+- when <span class="math">\(k\)</span> is <span class="math">\(2\)</span> and <span class="math">\(n\)</span> is bigger than <span class="math">\(1\)</span>, it is the binomial distribution
+- when <span class="math">\(k\)</span> is bigger than <span class="math">\(2\)</span> and <span class="math">\(n\)</span> is <span class="math">\(1\)</span>, it is the categorical&nbsp;distribution</p>
+<hr>
+<h4 id="dirichlet-distribution"><strong>Dirichlet Distribution</strong><a class="headerlink" href="#dirichlet-distribution" title="Permanent link">&para;</a></h4>
+<p>The Dirichlet distribution is a collection of continuous multivariate probability distribution parameterized by a vector <span class="math">\(\alpha\)</span> of positive real numbers. It is also a multivariate generalization of the Beta&nbsp;distribution.</p>
+<p>For our purposes in Bayesian statistics, it is commonly used as a prior and is the the conjugate prior of both the categorical distribution and multinomial&nbsp;distribution.</p>
+<hr>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">pymc3</span> <span class="k">as</span> <span class="nn">pm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="err">/home/duryan/anaconda3/lib/python3.7/site-packages/theano/configdefaults.py:560: UserWarning: DeprecationWarning: there is no c++ compiler.This is deprecated and with Theano 0.11 a c++ compiler will be mandatory</span>
+<span class="err">  warnings.warn(&quot;DeprecationWarning: there is no c++ compiler.&quot;</span>
+<span class="err">WARNING (theano.configdefaults): g++ not detected ! Theano will be unable to execute optimized C-implementations (for both CPU and GPU) and will default to Python implementations. Performance will be severely degraded. To remove this warning, set Theano flags cxx to an empty string.</span>
+<span class="err">WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.</span>
+</code></pre></div>
+</td></tr></table>
+<p>We&#8217;ll  make the simulated dice to be weighted towards rolling the number <span class="math">\(15\)</span>.</p>
+<p>Then we&#8217;ll use both distributions to find any irregularities as well as which number it is (both of which we already know the answer&nbsp;to!).</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># simulate an uneven die</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span> <span class="c1"># setting the seed so that our results are replicable</span>
+<span class="n">die</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">21</span><span class="p">))</span><span class="o">+</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span>
+<span class="k">def</span> <span class="nf">die_roll</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">die</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># perform 150 rolls with the uneven die</span>
+<span class="n">rolls</span> <span class="o">=</span> <span class="mi">150</span>
+<span class="n">rolled</span> <span class="o">=</span> <span class="p">[</span><span class="n">die_roll</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rolls</span><span class="p">)]</span>
+<span class="n">rolled_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rolled</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">die</span><span class="p">)])</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1">#  examine the distribution of results from 150 rolls</span>
+
+<span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rolled_count</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">k</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">rolls</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">rolled_count</span><span class="p">);</span>
+</code></pre></div>
+</td></tr></table>
+<p><img src="images/output_6_0.png" width="500" height="300" /></p>
+<p>From the above we can sort of tell that the die is already weighted towards 15, but we&#8217;re assuming we don&#8217;t know that yet. Let&#8217;s use the Bayesian method to conclude&nbsp;this.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span> <span class="c1"># instantiate a model</span>
+
+<span class="k">with</span> <span class="n">model</span><span class="p">:</span>
+
+    <span class="c1"># instantiate a Dirichlet distribution with a uniform prior with dimension k:</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Dirichlet</span><span class="p">(</span><span class="s2">&quot;theta&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">bias</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Deterministic</span><span class="p">(</span><span class="s2">&quot;bias&quot;</span><span class="p">,</span> <span class="n">theta</span><span class="p">[</span><span class="mi">15</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">Multinomial</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span> <span class="n">observed</span><span class="o">=</span><span class="n">rolled_count</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<p>Since <code>theta[14]</code> will hold the posterior probability of rolling a <span class="math">\(15\)</span> we&#8217;ll set a <code>Deterministic</code> object to record and compare this to the reference value <span class="math">\(p = 1/20\)</span>.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">model</span><span class="p">:</span>
+    <span class="n">trace</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">draws</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tune</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">chains</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">Auto</span><span class="o">-</span><span class="n">assigning</span><span class="w"> </span><span class="n">NUTS</span><span class="w"> </span><span class="n">sampler</span><span class="p">...</span><span class="w"></span>
+<span class="n">Initializing</span><span class="w"> </span><span class="n">NUTS</span><span class="w"> </span><span class="k">using</span><span class="w"> </span><span class="n">jitter</span><span class="o">+</span><span class="n">adapt_diag</span><span class="p">...</span><span class="w"></span>
+<span class="n">Multiprocess</span><span class="w"> </span><span class="n">sampling</span><span class="w"> </span><span class="p">(</span><span class="mi">2</span><span class="w"> </span><span class="n">chains</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="n">jobs</span><span class="p">)</span><span class="w"></span>
+<span class="nl">NUTS</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="n">theta</span><span class="o">]</span><span class="w"></span>
+<span class="n">Sampling</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="nl">chains</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="o">%|</span><span class="err">██████████</span><span class="o">|</span><span class="w"> </span><span class="mi">2600</span><span class="o">/</span><span class="mi">2600</span><span class="w"> </span><span class="o">[</span><span class="n">01:21&lt;00:00, 31.74draws/s</span><span class="o">]</span><span class="w"></span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">pm</span><span class="o">.</span><span class="n">traceplot</span><span class="p">(</span><span class="n">trace</span><span class="p">);</span>
+</code></pre></div>
+</td></tr></table>
+<p><img src="images/output_11_0.png" width="800" height="2500" /></p>
+<p>All our drawn thetas above seem to behave within our selected conjugate distributions, which is what we wanted to&nbsp;see.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># Generate summary of posterior distributions and round to three decimal places</span>
+<span class="n">pm</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>mean</th>
+      <th>sd</th>
+      <th>mc_error</th>
+      <th>hpd_2.5</th>
+      <th>hpd_97.5</th>
+      <th>n_eff</th>
+      <th>Rhat</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>theta__0</th>
+      <td>0.047</td>
+      <td>0.016</td>
+      <td>0.0</td>
+      <td>0.019</td>
+      <td>0.080</td>
+      <td>4638.434</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__1</th>
+      <td>0.047</td>
+      <td>0.016</td>
+      <td>0.0</td>
+      <td>0.018</td>
+      <td>0.079</td>
+      <td>5681.180</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__2</th>
+      <td>0.059</td>
+      <td>0.018</td>
+      <td>0.0</td>
+      <td>0.026</td>
+      <td>0.093</td>
+      <td>3994.628</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__3</th>
+      <td>0.053</td>
+      <td>0.017</td>
+      <td>0.0</td>
+      <td>0.019</td>
+      <td>0.083</td>
+      <td>5280.989</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__4</th>
+      <td>0.041</td>
+      <td>0.015</td>
+      <td>0.0</td>
+      <td>0.013</td>
+      <td>0.071</td>
+      <td>4669.649</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__5</th>
+      <td>0.024</td>
+      <td>0.011</td>
+      <td>0.0</td>
+      <td>0.004</td>
+      <td>0.046</td>
+      <td>5043.157</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__6</th>
+      <td>0.077</td>
+      <td>0.020</td>
+      <td>0.0</td>
+      <td>0.038</td>
+      <td>0.116</td>
+      <td>4303.150</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__7</th>
+      <td>0.065</td>
+      <td>0.019</td>
+      <td>0.0</td>
+      <td>0.032</td>
+      <td>0.103</td>
+      <td>4753.146</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__8</th>
+      <td>0.047</td>
+      <td>0.017</td>
+      <td>0.0</td>
+      <td>0.016</td>
+      <td>0.078</td>
+      <td>6134.952</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__9</th>
+      <td>0.041</td>
+      <td>0.015</td>
+      <td>0.0</td>
+      <td>0.015</td>
+      <td>0.071</td>
+      <td>4457.968</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__10</th>
+      <td>0.041</td>
+      <td>0.014</td>
+      <td>0.0</td>
+      <td>0.016</td>
+      <td>0.070</td>
+      <td>3803.688</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__11</th>
+      <td>0.070</td>
+      <td>0.021</td>
+      <td>0.0</td>
+      <td>0.033</td>
+      <td>0.111</td>
+      <td>3596.630</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__12</th>
+      <td>0.047</td>
+      <td>0.016</td>
+      <td>0.0</td>
+      <td>0.019</td>
+      <td>0.082</td>
+      <td>4235.920</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__13</th>
+      <td>0.041</td>
+      <td>0.015</td>
+      <td>0.0</td>
+      <td>0.014</td>
+      <td>0.070</td>
+      <td>4579.560</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__14</th>
+      <td>0.130</td>
+      <td>0.026</td>
+      <td>0.0</td>
+      <td>0.081</td>
+      <td>0.181</td>
+      <td>4554.103</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__15</th>
+      <td>0.029</td>
+      <td>0.013</td>
+      <td>0.0</td>
+      <td>0.007</td>
+      <td>0.053</td>
+      <td>5664.608</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__16</th>
+      <td>0.030</td>
+      <td>0.013</td>
+      <td>0.0</td>
+      <td>0.006</td>
+      <td>0.054</td>
+      <td>4250.061</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__17</th>
+      <td>0.035</td>
+      <td>0.015</td>
+      <td>0.0</td>
+      <td>0.009</td>
+      <td>0.062</td>
+      <td>3645.063</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__18</th>
+      <td>0.041</td>
+      <td>0.015</td>
+      <td>0.0</td>
+      <td>0.014</td>
+      <td>0.071</td>
+      <td>4053.963</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>theta__19</th>
+      <td>0.035</td>
+      <td>0.014</td>
+      <td>0.0</td>
+      <td>0.009</td>
+      <td>0.062</td>
+      <td>4361.858</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>bias</th>
+      <td>0.080</td>
+      <td>0.026</td>
+      <td>0.0</td>
+      <td>0.031</td>
+      <td>0.131</td>
+      <td>4554.103</td>
+      <td>1.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>By examining the summary of our trace results, we can also clearly see that <code>theta_14</code> which is number <span class="math">\(15\)</span>, has a distinctly abnormal&nbsp;mean.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="n">axes</span> <span class="o">=</span> <span class="n">pm</span><span class="o">.</span><span class="n">plot_posterior</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">varnames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;theta&quot;</span><span class="p">],</span> <span class="n">ref_val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axes</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">duryan</span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.7</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">pymc3</span><span class="o">/</span><span class="n">plots</span><span class="o">/</span><span class="n">__init__</span><span class="p">.</span><span class="n">py</span><span class="o">:</span><span class="mi">40</span><span class="o">:</span> <span class="n">UserWarning</span><span class="o">:</span> <span class="n">Keyword</span> <span class="n">argument</span> <span class="n">`varnames`</span> <span class="n">renamed</span> <span class="k">to</span> <span class="n">`var_names`</span><span class="p">,</span> <span class="k">and</span> <span class="n">will</span> <span class="n">be</span> <span class="n">removed</span> <span class="k">in</span> <span class="n">pymc3</span> <span class="mf">3.8</span>
+  <span class="k">warnings</span><span class="p">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Keyword argument `{old}` renamed to `{new}`, and will be removed in pymc3 3.8&#39;</span><span class="p">.</span><span class="k">format</span><span class="p">(</span><span class="k">old</span><span class="o">=</span><span class="k">old</span><span class="p">,</span> <span class="k">new</span><span class="o">=</span><span class="k">new</span><span class="p">))</span>
+</code></pre></div>
+</td></tr></table>
+<p><img src="images/output_15_1.png" width="850" height="700" /></p>
+<p>In the posterior plot above, we can also see clearly that the 15th plot has a distinctly different&nbsp;outcome.</p>
+<p>Using our stored <code>bias</code> object, we can now calculate the probability that the number <span class="math">\(15\)</span> is disproportionately rolled compared to the other&nbsp;numbers.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c1"># calculating the bias</span>
+<span class="n">bias_perc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">][</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The probability that number 15 is biased is </span><span class="si">{</span><span class="n">bias_perc</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+</td></tr></table>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="err">The probability that number 15 is biased is 100.00%</span>
+</code></pre></div>
+</td></tr></table>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+
+    var configscript = document.createElement('script');
+    configscript.type = 'text/x-mathjax-config';
+    configscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'none' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        availableFonts: ['STIX', 'TeX']," +
+        "        preferredFont: 'STIX'," +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+
+
+             
+ 
+                <p id="post-share-links">
+    Like this post? Share on:
+      <a href="https://twitter.com/intent/tweet?text=Multinomial%20%26%20Dirichlet%20Distribution%20with%C2%A0PyMC3&url=/blog/2019/10/05/multinomial-dirichlet-distribution-with-pymc3/&hashtags=machine-learning" target="_blank" rel="nofollow noopener noreferrer" title="Share on Twitter">Twitter</a>
+ ❄       <a href="https://www.facebook.com/sharer/sharer.php?u=/blog/2019/10/05/multinomial-dirichlet-distribution-with-pymc3/" target="_blank" rel="nofollow noopener noreferrer" title="Share on Facebook">Facebook</a>
+ ❄       <a href="mailto:?subject=Multinomial%20%26%20Dirichlet%20Distribution%20with%C2%A0PyMC3&amp;body=/blog/2019/10/05/multinomial-dirichlet-distribution-with-pymc3/" target="_blank" rel="nofollow noopener noreferrer" title="Share via Email">Email</a>
+
+            
+            
+
+
+
+
+
+
+
+            <hr/>
+<section>
+    <h2>Keep Reading</h2>
+<ul class="related-posts-list">
+<li><a href="../../../../../blog/2019/09/30/iterative-imputer/" title="Iterative Imputer">Iterative Imputer</a></li>
+<li><a href="../../../../../blog/2019/10/21/dsi-5-hackathon-the-youtube-virality-prophet/" title="DSI 5 Hackathon - The (YouTube) Virality Prophet">DSI 5 Hackathon - The (YouTube) Virality Prophet</a></li>
+<li><a href="../../../../../blog/2019/11/12/point-forward-the-job-description-hacker/" title="Point Forward: The Job Description Hacker">Point Forward: The Job Description Hacker</a></li>
+<li><a href="../../../../../blog/2019/12/01/how-to-run-your-nltk-pythonic-app-on-heroku/" title="How to Run Your NLTK Pythonic App on Heroku">How to Run Your NLTK Pythonic App on Heroku</a></li>
+<li><a href="../../../../../blog/2020/02/20/takeaways-from-amazons-machine-learning-use-case-call-center/" title="Takeaways from Amazon’s Machine Learning Use Case: Call Center">Takeaways from Amazon’s Machine Learning Use Case: Call Center</a></li>
+</ul>
+<hr />
+</section>
+            <aside>
+            <nav>
+            <ul class="articles-timeline">
+                <li class="previous-article">« <a href="../../../../../blog/2019/09/30/iterative-imputer/" title="Previous: Iterative Imputer">Iterative Imputer</a></li>
+                <li class="next-article"><a href="../../../../../blog/2019/10/21/dsi-5-hackathon-the-youtube-virality-prophet/" title="Next: DSI 5 Hackathon - The (YouTube) Virality Prophet">DSI 5 Hackathon - The (YouTube) Virality Prophet</a> »</li>
+            </ul>
+            </nav>
+            </aside>
+        </div>
+        <section id="article-sidebar" class="span2">
+            <h4>Published</h4>
+            <time itemprop="dateCreated" datetime="2019-10-05T00:30:00-04:00">Sat 05 October 2019</time>
+            <h4>Category</h4>
+            <a class="category-link" href="../../../../../categories#blog-ref">blog</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="../../../../../tags#machine-learning-ref">machine learning
+                    <span class="superscript">8</span>
+</a></li>
+            </ul>
+<h4>Stay in Touch</h4>
+<div id="sidebar-social-link">
+    <a href="http://twitter.com/iranzop" title="" target="_blank" rel="nofollow noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-label="Twitter" role="img" viewBox="0 0 512 512"><rect width="512" height="512" rx="15%" fill="#1da1f3"/><path fill="#fff" d="M437 152a72 72 0 0 1-40 12 72 72 0 0 0 32-40 72 72 0 0 1-45 17 72 72 0 0 0-122 65 200 200 0 0 1-145-74 72 72 0 0 0 22 94 72 72 0 0 1-32-7 72 72 0 0 0 56 69 72 72 0 0 1-32 1 72 72 0 0 0 67 50 200 200 0 0 1-105 29 200 200 0 0 0 309-179 200 200 0 0 0 35-37"/></svg>
+    </a>
+    <a href="http://github.com/iranzo" title="" target="_blank" rel="nofollow noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-label="GitHub" role="img" viewBox="0 0 512 512"><rect width="512" height="512" rx="15%" fill="#1B1817"/><path fill="#fff" d="M335 499c14 0 12 17 12 17H165s-2-17 12-17c13 0 16-6 16-12l-1-50c-71 16-86-28-86-28-12-30-28-37-28-37-24-16 1-16 1-16 26 2 40 26 40 26 22 39 59 28 74 22 2-17 9-28 16-35-57-6-116-28-116-126 0-28 10-51 26-69-3-6-11-32 3-67 0 0 21-7 70 26 42-12 86-12 128 0 49-33 70-26 70-26 14 35 6 61 3 67 16 18 26 41 26 69 0 98-60 120-117 126 10 8 18 24 18 48l-1 70c0 6 3 12 16 12z"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/iranzo/" title="" target="_blank" rel="nofollow noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-label="LinkedIn" role="img" viewBox="0 0 512 512" fill="#fff"><rect width="512" height="512" rx="15%" fill="#0077b5"/><circle cx="142" cy="138" r="37"/><path stroke="#fff" stroke-width="66" d="M244 194v198M142 194v198"/><path d="M276 282c0-20 13-40 36-40 24 0 33 18 33 45v105h66V279c0-61-32-89-76-89-34 0-51 19-59 32"/></svg>
+    </a>
+</div>
+            
+
+
+
+
+
+            
+
+
+
+
+
+        </section>
+</div>
+</article>
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe.
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides.
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+        </div>
+<footer>
+
+    <div>
+        <span class="site-name">Data Super Saiyan</span> - Where we go even further beyond!
+    </div>
+
+
+    <span class="site-name">Data Super Saiyan</span>  is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com.
+    <div id="amzn-assoc-ad-23824450-ef77-4537-9259-8590465886f1">
+    </div>
+    <script async src="//z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US&adInstanceId=23824450-ef77-4537-9259-8590465886f1">
+    </script>
+
+    <div id="fpowered">
+        Powered by: <a href="http://getpelican.com/" title="Pelican Home Page" target="_blank" rel="nofollow noopener noreferrer">Pelican</a>
+        Theme: <a href="https://elegant.oncrashreboot.com/" title="Theme Elegant Home Page" target="_blank" rel="nofollow noopener noreferrer">Elegant</a>
+    </div>
+</footer>            <script src="//code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script src="../../../../../theme/js/elegant.prod.9e9d5ce754.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    <script>
+    (function () {
+        if (window.location.hash.match(/^#comment-\d+$/)) {
+            $('#comment_thread').collapse('show');
+        }
+    })();
+    window.onhashchange=function(){
+        if (window.location.hash.match(/^#comment-\d+$/))
+            window.location.reload(true);
+    }
+    $('#comment_thread').on('shown', function () {
+        var link = document.getElementById('comment-accordion-toggle');
+        var old_innerHTML = link.innerHTML;
+        $(link).fadeOut(200, function() {
+            $(this).text('Click here to hide comments').fadeIn(200);
+        });
+        $('#comment_thread').on('hidden', function () {
+            $(link).fadeOut(200, function() {
+                $(this).text(old_innerHTML).fadeIn(200);
+            });
+        })
+    })
+</script>
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+        License : MIT -->
+</html>

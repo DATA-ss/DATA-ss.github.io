@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Data Super Saiyan - amazon</title><link>/</link><description>Where we go even further beyond!</description><lastBuildDate>Thu, 20 Feb 2020 17:30:00 -0400</lastBuildDate><item><title>Takeaways from Amazon’s Machine Learning Use Case: Call Center</title><link>blog/2020/02/20/takeaways-from-amazons-machine-learning-use-case-call-center/</link><description>&lt;hr&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Home of Big Data -&amp;nbsp;Amazon&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I recently completed Amazon&amp;#8217;s short machine learning &lt;em&gt;Use Case&lt;/em&gt; that was centered on improving the efficiency and accuracy of their call center routing&amp;nbsp;system.&lt;/p&gt;
+&lt;p&gt;Here are a few takeways I took note of from the&amp;nbsp;course.&lt;/p&gt;
+&lt;h2 id="10-problem-framing"&gt;1.0 Problem Framing&lt;a class="headerlink" href="#10-problem-framing" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Before embarking on implementing a machine learning solution for your business, you should first frame the problem within the context of your business. A simple guide would be to obey the following&amp;nbsp;steps:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Understand&amp;nbsp;context&lt;/li&gt;
+&lt;li&gt;Identify&amp;nbsp;baseline&lt;/li&gt;
+&lt;li&gt;Convert business problem -&amp;gt; &lt;span class="caps"&gt;ML&lt;/span&gt;&amp;nbsp;problem&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;When it comes to &lt;em&gt;understanding context&lt;/em&gt;, you should be prepared to consult with domain experts if necessary. Be sure to ask them wide ranging questions so that you could properly frame the business problem and account for edge cases within a reasonable and solvable&amp;nbsp;context.&lt;/p&gt;
+&lt;p&gt;Meanwhile it is also important to identify a baseline as it allows &lt;em&gt;Opportunity Analysis&lt;/em&gt; to be performed. With a baseline, performance can be&amp;nbsp;compared.&lt;/p&gt;
+&lt;p&gt;If there&amp;#8217;s no production level decision making system in place, use an educated&amp;nbsp;guess.&lt;/p&gt;
+&lt;p&gt;Once these measures have been taken, you would be better prepared to convert your business problem into a machine learning one. At this stage it is crucial to think critcally about how a correct prediction could change your business&amp;nbsp;metric.&lt;/p&gt;
+&lt;h2 id="20-data-handling"&gt;2.0 Data Handling&lt;a class="headerlink" href="#20-data-handling" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;After the previous stage is completed, you should start looking at your data and ascertain whether you have what you need to attempt a machine learning solution. This is the most important stage of the entire process, and is where most of the mistakes can&amp;nbsp;occur.&lt;/p&gt;
+&lt;p&gt;Of course its not that simple; you also have to look at other aspects of your data and see if you can simplify it where logically appropriate. A good rule of thumb to follow is to check if there are labels in minor quantities that are similar enough to be combined; the fewer labels the&amp;nbsp;better.&lt;/p&gt;
+&lt;h4 id="21-traindevelopmenttest"&gt;2.1 Train/Development/Test&lt;a class="headerlink" href="#21-traindevelopmenttest" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h4&gt;
+&lt;p&gt;Compared to what I&amp;#8217;ve learnt which is a regular train-test split, Amazon suggests a three part split of your data when developing the machine learning model. Doing this can better help with&amp;nbsp;overfitting.&lt;/p&gt;
+&lt;p&gt;Amazon has suggested a 70-15-15 split if you have a lot of data available. Otherwise do a 80-10-10&amp;nbsp;split.&lt;/p&gt;
+&lt;h2 id="30-modeling"&gt;3.0 Modeling&lt;a class="headerlink" href="#30-modeling" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Amazon prioritizes the &lt;strong&gt;Precision-Recall Tradeoff&lt;/strong&gt; in their machine learning classification&amp;nbsp;model.&lt;/p&gt;
+&lt;p&gt;Alongside that they would perform &lt;strong&gt;Feature Engineering&lt;/strong&gt;, by manually looking at examples of false-positives and false-negatives to find out why the model&amp;nbsp;failed.&lt;/p&gt;
+&lt;p&gt;It would help if there is a domain expert was present, to help identify what kinds of info can help correct these&amp;nbsp;errors.&lt;/p&gt;
+&lt;h2 id="40-application"&gt;4.0 Application&lt;a class="headerlink" href="#40-application" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Once your model is tested and ready, Amazon suggests using &lt;strong&gt;A/B Testing&lt;/strong&gt; to see if the &amp;#8220;treatment group&amp;#8221; sees an improvement in performance compared to the control&amp;nbsp;group.&lt;/p&gt;
+&lt;p&gt;In some cases you may need add additional layers of rules to guide your algorithm&amp;#8217;s behavior in case there are certain business requirements that need to be met that the model didn&amp;#8217;t pick up in its&amp;#8217; learning&amp;nbsp;stage.&lt;/p&gt;
+&lt;h2 id="conclusion"&gt;Conclusion&lt;a class="headerlink" href="#conclusion" title="Permanent link"&gt;&amp;para;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Hopefully there are some nice learnings you can takeaway from this short article, and spare you the 40 minutes&lt;sup&gt;1&lt;/sup&gt;. I know I&amp;#8217;m definitely going to try using the triple split of data in my models moving&amp;nbsp;forward.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;sup&gt;1&lt;/sup&gt; There is actually no harm spending 40 minutes going through the course if you&amp;#8217;d like, as they&amp;#8217;ll send you a sweet little completion&amp;nbsp;certificate!&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Amazon's completion certificate" src="images/amazon_certificate.png"&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Kai</dc:creator><pubDate>Thu, 20 Feb 2020 17:30:00 -0400</pubDate><guid isPermaLink="false">tag:None,2020-02-20:blog/2020/02/20/takeaways-from-amazons-machine-learning-use-case-call-center/</guid><category>blog</category><category>amazon</category><category>machine learning</category></item></channel></rss>
